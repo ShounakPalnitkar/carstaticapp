@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EV Car Recommender</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -22,85 +23,89 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
-            margin-bottom: 20px;
-            position: relative;
-            height: 100%; /* Ensure cards in a row have same height */
+            margin-bottom: 20px; /* Keep margin-bottom */
+            /* Removed height: 100% to allow natural height based on content */
         }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .card-img-top {
-            border-radius: 10px 10px 0 0;
-            height: 180px;
-            object-fit: cover;
-        }
-        .form-control, .form-select {
-            border-radius: 8px;
-            padding: 10px;
-        }
-        .btn-primary {
-            background-color: #0083b0;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-        .btn-primary:hover {
-            background-color: #006a8e;
-        }
-        .feature-icon {
-            font-size: 2rem;
-            color: #0083b0;
-            margin-bottom: 1rem;
-        }
-        .recommendation-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #28a745;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            z-index: 1;
-        }
-        .car-spec {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 0.9rem; /* Slightly smaller spec text */
-        }
-        .car-spec i {
-            margin-right: 10px;
-            color: #0083b0;
-            width: 20px;
-            text-align: center;
-        }
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-        }
-        .no-results {
-            display: none;
-            text-align: center;
-            padding: 30px;
-            background-color: #f8d7da;
-            border-radius: 8px;
-            color: #721c24;
-            margin-bottom: 20px;
-        }
-        .price-tag {
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        .card-footer {
-            background-color: #f8f9fa; /* Light background for footer */
-            border-top: 1px solid #dee2e6;
-        }
+         .card:hover {
+             transform: translateY(-5px);
+         }
+         .card-img-top {
+             border-radius: 10px 10px 0 0;
+             height: 180px;
+             object-fit: cover;
+         }
+         .form-control, .form-select {
+             border-radius: 8px;
+             padding: 10px;
+         }
+         .btn-primary {
+             background-color: #0083b0;
+             border: none;
+             padding: 10px 20px;
+             border-radius: 8px;
+             font-weight: 500;
+         }
+         .btn-primary:hover {
+             background-color: #006a8e;
+         }
+         .feature-icon {
+             font-size: 1.8rem; /* Slightly smaller icon */
+             color: #0083b0;
+             margin-bottom: 0.5rem; /* Reduced margin */
+             text-align: center; /* Center icons */
+         }
+         .how-it-works-item {
+             text-align: center; /* Center text below icon */
+         }
+         .recommendation-badge {
+             position: absolute;
+             top: 10px;
+             right: 10px;
+             background-color: #28a745;
+             color: white;
+             padding: 5px 10px;
+             border-radius: 20px;
+             font-size: 0.8rem;
+             font-weight: bold;
+             z-index: 1;
+         }
+         .car-spec {
+             display: flex;
+             align-items: center;
+             margin-bottom: 8px;
+             font-size: 0.9rem;
+         }
+         .car-spec i {
+             margin-right: 10px;
+             color: #0083b0;
+             width: 20px;
+             text-align: center;
+         }
+         .loading-spinner, .no-results {
+             display: none; /* Hidden by default */
+             text-align: center;
+             padding: 30px;
+             margin-top: 20px;
+             margin-bottom: 20px;
+             border-radius: 8px;
+         }
+         .no-results {
+             background-color: #fff3cd; /* Warning color */
+             color: #664d03; /* Warning text color */
+         }
+         .price-tag {
+             font-weight: bold;
+             color: #2c3e50;
+         }
+         .card-footer {
+             background-color: #f8f9fa;
+             border-top: 1px solid #dee2e6;
+         }
+         /* Ensure results container takes up space even when empty */
+         #resultsContainer {
+             min-height: 200px;
+         }
     </style>
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
 <body>
     <div class="hero text-center">
@@ -113,305 +118,263 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-4 mb-4">
-                <div class="card mb-4">
+                <div class="card mb-4 shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title">Your Preferences</h5>
                         <form id="preferencesForm">
-                            <div class="mb-3">
-                                <label for="minRange" class="form-label">Minimum Range (miles)</label>
-                                <input type="number" class="form-control" id="minRange" min="50" max="500" value="150" step="10">
-                            </div>
-                            <div class="mb-3">
-                                <label for="maxPrice" class="form-label">Maximum Budget ($)</label>
-                                <input type="number" class="form-control" id="maxPrice" min="10000" max="150000" value="40000" step="1000">
-                            </div>
-                            <div class="mb-3">
-                                <label for="driveType" class="form-label">Preferred Drive Type</label>
-                                <select class="form-select" id="driveType">
-                                    <option value="Any">Any</option>
-                                    <option value="Front Wheel Drive">Front Wheel Drive</option>
-                                    <option value="Rear Wheel Drive">Rear Wheel Drive</option>
-                                    <option value="All Wheel Drive">All Wheel Drive</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="seats" class="form-label">Number of Seats</label>
-                                <select class="form-select" id="seats">
-                                     <option value="5" selected>5</option>
-                                     <option value="4">4</option>
-                                     </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="fastCharge" class="form-label">Minimum Fast Charge Speed (mph)</label>
-                                <input type="number" class="form-control" id="fastCharge" min="0" max="1000" value="100" step="10">
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Find My EV</button>
+                             <div class="mb-3">
+                                 <label for="minRange" class="form-label">Minimum Range (miles)</label>
+                                 <input type="number" class="form-control" id="minRange" placeholder="e.g., 150" min="0" step="10" value="150">
+                             </div>
+                             <div class="mb-3">
+                                 <label for="maxPrice" class="form-label">Maximum Budget ($)</label>
+                                 <input type="number" class="form-control" id="maxPrice" placeholder="e.g., 40000" min="0" step="1000" value="40000">
+                             </div>
+                             <div class="mb-3">
+                                 <label for="driveType" class="form-label">Preferred Drive Type</label>
+                                 <select class="form-select" id="driveType">
+                                     <option value="Any" selected>Any</option>
+                                     <option value="Front Wheel Drive">Front Wheel Drive</option>
+                                     <option value="Rear Wheel Drive">Rear Wheel Drive</option>
+                                     <option value="All Wheel Drive">All Wheel Drive</option>
+                                 </select>
+                             </div>
+                             <div class="mb-3">
+                                 <label for="seats" class="form-label">Number of Seats</label>
+                                 <select class="form-select" id="seats">
+                                      <option value="Any">Any</option> <option value="4">4</option>
+                                      <option value="5" selected>5</option>
+                                      </select>
+                             </div>
+                             <div class="mb-3">
+                                 <label for="fastCharge" class="form-label">Min. Fast Charge Speed (mph)</label>
+                                 <input type="number" class="form-control" id="fastCharge" placeholder="e.g., 100" min="0" step="10" value="100">
+                             </div>
+                             <button type="submit" class="btn btn-primary w-100">Find My EV</button>
                         </form>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">How It Works</h5>
-                        <div class="mb-3">
-                            <div class="feature-icon"><i class="bi bi-sliders"></i></div>
-                            <h6>Set Your Preferences</h6>
-                            <p class="text-muted small">Tell us what you're looking for.</p>
-                        </div>
-                        <div class="mb-3">
-                            <div class="feature-icon"><i class="bi bi-funnel"></i></div>
-                            <h6>Smart Matching</h6>
-                            <p class="text-muted small">We filter our data based on your criteria.</p>
-                        </div>
-                        <div>
-                            <div class="feature-icon"><i class="bi bi-car-front-fill"></i></div>
-                            <h6>Discover Your EV</h6>
-                            <p class="text-muted small">Explore recommended vehicles.</p>
-                        </div>
-                    </div>
+                <div class="card shadow-sm">
+                     <div class="card-body">
+                         <h5 class="card-title text-center mb-4">How It Works</h5>
+                         <div class="row">
+                             <div class="col-4 how-it-works-item">
+                                 <div class="feature-icon"><i class="bi bi-sliders"></i></div>
+                                 <p class="small text-muted">Set Preferences</p>
+                             </div>
+                             <div class="col-4 how-it-works-item">
+                                 <div class="feature-icon"><i class="bi bi-funnel-fill"></i></div>
+                                 <p class="small text-muted">Smart Matching</p>
+                             </div>
+                             <div class="col-4 how-it-works-item">
+                                 <div class="feature-icon"><i class="bi bi-car-front-fill"></i></div>
+                                 <p class="small text-muted">Discover EVs</p>
+                             </div>
+                         </div>
+                     </div>
                 </div>
             </div>
 
             <div class="col-lg-8">
-                <div class="no-results" id="noResults">
-                    <h4>No vehicles match your criteria</h4>
-                    <p>Try adjusting your preferences to see more results.</p>
-                </div>
-
                 <div class="loading-spinner" id="loadingSpinner">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2">Finding your perfect EV...</p>
+                    <p class="mt-2 text-muted">Finding your perfect EV...</p>
                 </div>
 
-                <div id="resultsContainer" class="row g-4">
-                    </div>
+                <div class="no-results" id="noResults">
+                    <h4><i class="bi bi-search me-2"></i>No vehicles match your criteria</h4>
+                    <p class="mb-0">Try adjusting your preferences to see more results.</p>
+                </div>
+
+                 <div id="resultsContainer" class="row row-cols-1 row-cols-md-2 g-4">
+                     </div>
             </div>
         </div>
     </div>
 
-    <footer class="bg-dark text-white py-4 mt-5">
-        <div class="container text-center">
-            <p class="mb-0">© 2023 EV Car Recommender. Data for demonstration purposes.</p>
+    <footer class="bg-light text-center text-muted py-3 mt-5 border-top">
+        <div class="container">
+            <small>© 2023 EV Car Recommender. Data for demonstration purposes.</small>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Sample EV data with prices in USD
         const evData = [
-            {
-                "Model": "Tesla Model 3 Standard Range Plus",
-                "Acceleration": "5.6 sec",
-                "TopSpeed": "140 mph",
-                "Range": "267 miles",
-                "Efficiency": "24 kWh/100 miles",
-                "FastChargeSpeed": "170 mph",
-                "Drive": "Rear Wheel Drive",
-                "NumberofSeats": "5",
-                "PriceinUSD": "40240",
-                "Image": "https://ev-database.org/img/auto/Tesla_Model_3_2022/Tesla_Model_3_2022-01.jpg"
-            },
-            {
-                 "Model": "Hyundai Kona Electric 64 kWh",
-                 "Acceleration": "7.9 sec",
-                 "TopSpeed": "104 mph",
-                 "Range": "300 miles",
-                 "Efficiency": "21 kWh/100 miles",
-                 "FastChargeSpeed": "150 mph",
-                 "Drive": "Front Wheel Drive",
-                 "NumberofSeats": "5",
-                 "PriceinUSD": "34200",
-                 "Image": "https://ev-database.org/img/auto/Hyundai_Kona_Electric_64_kWh/Hyundai_Kona_Electric_64_kWh-01.jpg"
-            },
-            {
-                "Model": "Kia e-Niro 64 kWh",
-                "Acceleration": "7.8 sec",
-                "TopSpeed": "104 mph",
-                "Range": "282 miles",
-                "Efficiency": "23 kWh/100 miles",
-                "FastChargeSpeed": "150 mph",
-                "Drive": "Front Wheel Drive",
-                "NumberofSeats": "5",
-                "PriceinUSD": "39400",
-                "Image": "https://ev-database.org/img/auto/Kia_e-Niro_64_kWh/Kia_e-Niro_64_kWh-01.jpg"
-            },
-            {
-                "Model": "Nissan Leaf e+ 62 kWh",
-                "Acceleration": "6.9 sec",
-                "TopSpeed": "98 mph",
-                "Range": "239 miles",
-                "Efficiency": "26 kWh/100 miles",
-                "FastChargeSpeed": "110 mph",
-                "Drive": "Front Wheel Drive",
-                "NumberofSeats": "5",
-                "PriceinUSD": "36600",
-                "Image": "https://ev-database.org/img/auto/Nissan_Leaf_e_62_kWh/Nissan_Leaf_e_62_kWh-01.jpg"
-            },
-            {
-                "Model": "Chevrolet Bolt EV",
-                "Acceleration": "6.5 sec",
-                "TopSpeed": "93 mph",
-                "Range": "259 miles",
-                "Efficiency": "28 kWh/100 miles",
-                "FastChargeSpeed": "100 mph",
-                "Drive": "Front Wheel Drive",
-                "NumberofSeats": "5",
-                "PriceinUSD": "31500",
-                "Image": "https://ev-database.org/img/auto/Chevrolet_Bolt_EV/Chevrolet_Bolt_EV-01.jpg"
-            },
-             { // Added another car for variety
-                "Model": "Volkswagen ID.4 Pro",
-                "Acceleration": "7.8 sec",
-                "TopSpeed": "100 mph",
-                "Range": "260 miles",
-                "Efficiency": "29 kWh/100 miles",
-                "FastChargeSpeed": "240 mph", // Example value
-                "Drive": "Rear Wheel Drive",
-                "NumberofSeats": "5",
-                "PriceinUSD": "41230",
-                "Image": "https://ev-database.org/img/auto/Volkswagen_ID4_Pro/Volkswagen_ID4_Pro-01.jpg" // Check image source
-            },
-            { // Added a slightly cheaper option
-                 "Model": "MG ZS EV Long Range",
-                 "Acceleration": "8.4 sec",
-                 "TopSpeed": "109 mph",
-                 "Range": "273 miles",
-                 "Efficiency": "25 kWh/100 miles",
-                 "FastChargeSpeed": "180 mph", // Example value
-                 "Drive": "Front Wheel Drive",
-                 "NumberofSeats": "5",
-                 "PriceinUSD": "30000", // Example Price
-                 "Image": "https://ev-database.org/img/auto/MG_ZS_EV_Long_Range/MG_ZS_EV_Long_Range-01.jpg" // Check image source
-            }
+             { "Model": "Tesla Model 3 Standard Range Plus", "Acceleration": "5.6 sec", "TopSpeed": "140 mph", "Range": "267 miles", "Efficiency": "24 kWh/100 miles", "FastChargeSpeed": "170 mph", "Drive": "Rear Wheel Drive", "NumberofSeats": "5", "PriceinUSD": "40240", "Image": "https://ev-database.org/img/auto/Tesla_Model_3_2022/Tesla_Model_3_2022-01.jpg" },
+             { "Model": "Hyundai Kona Electric 64 kWh", "Acceleration": "7.9 sec", "TopSpeed": "104 mph", "Range": "300 miles", "Efficiency": "21 kWh/100 miles", "FastChargeSpeed": "150 mph", "Drive": "Front Wheel Drive", "NumberofSeats": "5", "PriceinUSD": "34200", "Image": "https://ev-database.org/img/auto/Hyundai_Kona_Electric_64_kWh/Hyundai_Kona_Electric_64_kWh-01.jpg" },
+             { "Model": "Kia e-Niro 64 kWh", "Acceleration": "7.8 sec", "TopSpeed": "104 mph", "Range": "282 miles", "Efficiency": "23 kWh/100 miles", "FastChargeSpeed": "150 mph", "Drive": "Front Wheel Drive", "NumberofSeats": "5", "PriceinUSD": "39400", "Image": "https://ev-database.org/img/auto/Kia_e-Niro_64_kWh/Kia_e-Niro_64_kWh-01.jpg" },
+             { "Model": "Nissan Leaf e+ 62 kWh", "Acceleration": "6.9 sec", "TopSpeed": "98 mph", "Range": "239 miles", "Efficiency": "26 kWh/100 miles", "FastChargeSpeed": "110 mph", "Drive": "Front Wheel Drive", "NumberofSeats": "5", "PriceinUSD": "36600", "Image": "https://ev-database.org/img/auto/Nissan_Leaf_e_62_kWh/Nissan_Leaf_e_62_kWh-01.jpg" },
+             { "Model": "Chevrolet Bolt EV", "Acceleration": "6.5 sec", "TopSpeed": "93 mph", "Range": "259 miles", "Efficiency": "28 kWh/100 miles", "FastChargeSpeed": "100 mph", "Drive": "Front Wheel Drive", "NumberofSeats": "5", "PriceinUSD": "31500", "Image": "https://ev-database.org/img/auto/Chevrolet_Bolt_EV/Chevrolet_Bolt_EV-01.jpg" },
+             { "Model": "Volkswagen ID.4 Pro", "Acceleration": "7.8 sec", "TopSpeed": "100 mph", "Range": "260 miles", "Efficiency": "29 kWh/100 miles", "FastChargeSpeed": "240 mph", "Drive": "Rear Wheel Drive", "NumberofSeats": "5", "PriceinUSD": "41230", "Image": "https://ev-database.org/img/auto/Volkswagen_ID4_Pro/Volkswagen_ID4_Pro-01.jpg" },
+             { "Model": "MG ZS EV Long Range", "Acceleration": "8.4 sec", "TopSpeed": "109 mph", "Range": "273 miles", "Efficiency": "25 kWh/100 miles", "FastChargeSpeed": "180 mph", "Drive": "Front Wheel Drive", "NumberofSeats": "5", "PriceinUSD": "30000", "Image": "https://ev-database.org/img/auto/MG_ZS_EV_Long_Range/MG_ZS_EV_Long_Range-01.jpg" }
+             // Add more EV data here if needed
         ];
 
-        // Function to extract numeric value from strings
-        function extractNumber(str) {
-            if (typeof str === 'number') return str;
-            if (!str) return 0;
-            // Use parseFloat after removing non-numeric characters except decimal point
-            const num = str.toString().replace(/[^0-9.]/g, '');
-            return parseFloat(num) || 0;
+        // --- Helper Functions ---
+        function extractNumber(str, defaultValue = 0) {
+             if (typeof str === 'number') return str;
+             if (typeof str !== 'string' || !str) return defaultValue;
+             const num = str.replace(/[^0-9.]/g, ''); // Keep decimal point
+             return parseFloat(num) || defaultValue;
         }
 
-        // Function to filter and sort EVs based on user preferences
-        function findEVs(preferences) {
-            console.log("Filtering with preferences:", preferences);
-            const filtered = evData.filter(car => {
-                const range = extractNumber(car.Range);
-                const price = extractNumber(car.PriceinUSD);
-                const seats = parseInt(car.NumberofSeats) || 0; // Ensure seats is treated as number
-                const fastCharge = extractNumber(car.FastChargeSpeed);
+        function getPreferences() {
+             // Read values from form, providing safe defaults if empty/invalid
+             const minRange = parseInt(document.getElementById('minRange').value, 10) || 0;
+             const maxPrice = parseInt(document.getElementById('maxPrice').value, 10) || Infinity; // Use Infinity if no max price
+             const driveType = document.getElementById('driveType').value; // String 'Any', 'Front Wheel Drive', etc.
+             const seatsValue = document.getElementById('seats').value; // String 'Any', '4', '5'
+             const seats = seatsValue === 'Any' ? 'Any' : parseInt(seatsValue, 10); // Keep 'Any' as string, parse others
+             const fastCharge = parseInt(document.getElementById('fastCharge').value, 10) || 0;
 
-                const meetsCriteria = (
-                    range >= preferences.minRange &&
-                    price <= preferences.maxPrice &&
-                    seats === preferences.seats &&
-                    fastCharge >= preferences.fastCharge &&
-                    (preferences.driveType === 'Any' || car.Drive === preferences.driveType)
-                );
-                // console.log(`Checking ${car.Model}: Range ${range}>=${preferences.minRange}? ${range >= preferences.minRange}, Price ${price}<=${preferences.maxPrice}? ${price <= preferences.maxPrice}, Seats ${seats}===${preferences.seats}? ${seats === preferences.seats}, FastCharge ${fastCharge}>=${preferences.fastCharge}? ${fastCharge >= preferences.fastCharge}, Drive OK? ${(preferences.driveType === 'Any' || car.Drive === preferences.driveType)} -> Meets: ${meetsCriteria}`);
-                return meetsCriteria;
+             return { minRange, maxPrice, driveType, seats, fastCharge };
+        }
+
+        // --- Core Logic ---
+        function findEVs(preferences) {
+            console.log("Filtering with:", preferences); // Log preferences for debugging
+
+            const filtered = evData.filter(car => {
+                // Extract car data with defaults
+                const carRange = extractNumber(car.Range, 0);
+                const carPrice = extractNumber(car.PriceinUSD, Infinity);
+                const carSeats = parseInt(car.NumberofSeats, 10) || 0;
+                const carFastCharge = extractNumber(car.FastChargeSpeed, 0);
+                const carDrive = car.Drive || '';
+
+                // --- Apply Filters ---
+                // 1. Range Check
+                if (carRange < preferences.minRange) return false;
+
+                // 2. Price Check
+                if (carPrice > preferences.maxPrice) return false;
+
+                // 3. Drive Type Check
+                if (preferences.driveType !== 'Any' && carDrive !== preferences.driveType) return false;
+
+                // 4. Seats Check
+                if (preferences.seats !== 'Any' && carSeats !== preferences.seats) return false;
+
+                // 5. Fast Charge Check
+                if (carFastCharge < preferences.fastCharge) return false;
+
+                // If all checks passed, include the car
+                return true;
             });
 
-            console.log("Filtered results:", filtered.length);
+            console.log("Found matches:", filtered.length); // Log match count
 
-            // Sort by closest range match (absolute difference to minRange), then by price (ascending)
+            // --- Sort Results ---
+            // Sort by relevance:
+            // 1. Closest range match (absolute difference to minRange) - Ascending
+            // 2. Price - Ascending (cheaper is better if range diff is equal)
             return filtered.sort((a, b) => {
-                // *** FIX: Added closing parenthesis to Math.abs calls ***
-                const aRangeDiff = Math.abs(extractNumber(a.Range) - preferences.minRange);
-                const bRangeDiff = Math.abs(extractNumber(b.Range) - preferences.minRange);
+                const aRangeDiff = Math.abs(extractNumber(a.Range, 0) - preferences.minRange);
+                const bRangeDiff = Math.abs(extractNumber(b.Range, 0) - preferences.minRange);
 
                 if (aRangeDiff !== bRangeDiff) {
-                    return aRangeDiff - bRangeDiff; // Sort by smallest difference first
+                    return aRangeDiff - bRangeDiff; // Smaller difference comes first
+                } else {
+                    // If range difference is the same, sort by price (ascending)
+                    return extractNumber(a.PriceinUSD, Infinity) - extractNumber(b.PriceinUSD, Infinity);
                 }
-                // If range difference is the same, sort by price (lower price first)
-                return extractNumber(a.PriceinUSD) - extractNumber(b.PriceinUSD);
             });
         }
 
-        // Function to display results
+        // --- UI Update Functions ---
         function displayResults(results) {
             const resultsContainer = document.getElementById('resultsContainer');
-            const noResults = document.getElementById('noResults');
+            const noResultsEl = document.getElementById('noResults');
             const loadingSpinner = document.getElementById('loadingSpinner');
-
-            // Hide loading spinner
-            loadingSpinner.style.display = 'none';
 
             // Clear previous results
             resultsContainer.innerHTML = '';
 
+            // Hide loading spinner
+            loadingSpinner.style.display = 'none';
+
             if (results.length === 0) {
-                noResults.style.display = 'block'; // Show no results message
+                // No results found
+                noResultsEl.style.display = 'block';
                 resultsContainer.style.display = 'none'; // Hide container
-                return;
-            }
+            } else {
+                // Results found
+                noResultsEl.style.display = 'none';
+                resultsContainer.style.display = ''; // Show container (default display: row)
 
-            noResults.style.display = 'none'; // Hide no results message
-            resultsContainer.style.display = 'flex'; // Ensure container is visible (it's a flex row)
+                // Display up to 6 best matches
+                results.slice(0, 6).forEach((car, index) => {
+                    const cardCol = document.createElement('div');
+                    // Uses Bootstrap's responsive column classes
+                    cardCol.className = 'col'; // Let Bootstrap handle column distribution in row-cols-md-2
 
-            // Display up to 6 best matches
-            results.slice(0, 6).forEach((car, index) => {
-                const cardCol = document.createElement('div');
-                // Use col-md-6 for 2 cards per row on medium screens and up
-                cardCol.className = 'col-md-6 mb-4'; // Added mb-4 for spacing between rows
-                cardCol.innerHTML = `
-                    <div class="card h-100">
-                        ${index === 0 ? '<div class="recommendation-badge">Best Match</div>' : ''}
-                        <img src="${car.Image || 'https://via.placeholder.com/300x180?text=No+Image'}" class="card-img-top" alt="${car.Model}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x180?text=Image+Error';">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">${car.Model}</h5>
-                            <div class="mt-auto"> <div class="car-spec"><i class="bi bi-speedometer2"></i> <span><strong>Range:</strong> ${car.Range}</span></div>
-                                <div class="car-spec"><i class="bi bi-tags-fill"></i> <span><strong>Price:</strong> $${extractNumber(car.PriceinUSD).toLocaleString()}</span></div>
-                                <div class="car-spec"><i class="bi bi-lightning-charge-fill"></i> <span><strong>Efficiency:</strong> ${car.Efficiency}</span></div>
-                                <div class="car-spec"><i class="bi bi-ev-station-fill"></i> <span><strong>Fast Charge:</strong> ${car.FastChargeSpeed}</span></div>
-                                <div class="car-spec"><i class="bi bi-gear-wide-connected"></i> <span><strong>Drive:</strong> ${car.Drive}</span></div>
-                                <div class="car-spec"><i class="bi bi-people-fill"></i> <span><strong>Seats:</strong> ${car.NumberofSeats}</span></div>
+                    const priceFormatted = extractNumber(car.PriceinUSD, 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+                    cardCol.innerHTML = `
+                        <div class="card h-100 shadow-sm">
+                            ${index === 0 ? '<div class="recommendation-badge">Best Match</div>' : ''}
+                            <img src="${car.Image || 'https://via.placeholder.com/300x180?text=No+Image'}" class="card-img-top" alt="${car.Model || 'EV Image'}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x180?text=Image+Error';">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">${car.Model || 'Unknown Model'}</h5>
+                                <div class="mt-2 mb-3"> <div class="car-spec"><i class="bi bi-speedometer2"></i> <span><strong>Range:</strong> ${car.Range || 'N/A'}</span></div>
+                                    <div class="car-spec"><i class="bi bi-tags-fill"></i> <span><strong>Price:</strong> ${priceFormatted}</span></div>
+                                    <div class="car-spec"><i class="bi bi-lightning-charge-fill"></i> <span><strong>Efficiency:</strong> ${car.Efficiency || 'N/A'}</span></div>
+                                    <div class="car-spec"><i class="bi bi-ev-station-fill"></i> <span><strong>Fast Charge:</strong> ${car.FastChargeSpeed || 'N/A'}</span></div>
+                                    <div class="car-spec"><i class="bi bi-gear-wide-connected"></i> <span><strong>Drive:</strong> ${car.Drive || 'N/A'}</span></div>
+                                    <div class="car-spec"><i class="bi bi-people-fill"></i> <span><strong>Seats:</strong> ${car.NumberofSeats || 'N/A'}</span></div>
+                                </div>
+                                <div class="card-footer text-muted mt-auto pt-2 pb-1 bg-transparent border-0"> <small>0-60 mph: ${car.Acceleration || 'N/A'}</small>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-footer">
-                            <small class="text-muted">0-60 mph: ${car.Acceleration || 'N/A'}</small>
-                        </div>
-                    </div>
-                `;
-                resultsContainer.appendChild(cardCol);
-            });
+                    `;
+                    resultsContainer.appendChild(cardCol);
+                });
+            }
         }
 
-        // Form submission handler
-        document.getElementById('preferencesForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent actual form submission
+        function showLoadingState() {
+             document.getElementById('loadingSpinner').style.display = 'block';
+             document.getElementById('resultsContainer').innerHTML = ''; // Clear previous results immediately
+             document.getElementById('resultsContainer').style.display = 'none';
+             document.getElementById('noResults').style.display = 'none';
+        }
 
-            // Show loading spinner and hide results/no-results message
-            document.getElementById('loadingSpinner').style.display = 'block';
-            document.getElementById('resultsContainer').style.display = 'none'; // Hide results while loading
-            document.getElementById('noResults').style.display = 'none';
 
-            // Get user preferences from form
-            const preferences = {
-                minRange: parseInt(document.getElementById('minRange').value) || 0,
-                maxPrice: parseInt(document.getElementById('maxPrice').value) || Infinity,
-                driveType: document.getElementById('driveType').value,
-                seats: parseInt(document.getElementById('seats').value) || 0,
-                fastCharge: parseInt(document.getElementById('fastCharge').value) || 0
-            };
+        // --- Event Listeners ---
+        document.getElementById('preferencesForm').addEventListener('submit', function(event) {
+             event.preventDefault(); // Stop standard form submission
+             console.log("Form submitted!");
 
-            // Use setTimeout to simulate processing delay (optional, good for UX)
-            setTimeout(() => {
-                const results = findEVs(preferences);
-                displayResults(results);
-            }, 500); // 0.5 second delay
+             showLoadingState(); // Show spinner, hide results/no-results
+
+             const preferences = getPreferences();
+
+             // Simulate network delay/processing time (optional but good for UX)
+             setTimeout(() => {
+                 const results = findEVs(preferences);
+                 displayResults(results);
+             }, 300); // Reduced delay slightly
         });
 
-        // Initialize with default values on page load
+        // Initial load: Trigger form submission to show default results
         document.addEventListener('DOMContentLoaded', function() {
-             // Trigger the form submission logic on load to show initial results
-             document.getElementById('preferencesForm').dispatchEvent(new Event('submit'));
+             console.log("DOM Loaded. Triggering initial search.");
+             // Directly call the logic instead of dispatching event
+             showLoadingState();
+             const initialPreferences = getPreferences();
+              // Use a short timeout to allow the initial render before processing
+             setTimeout(() => {
+                 const initialResults = findEVs(initialPreferences);
+                 displayResults(initialResults);
+             }, 100); // Short delay for initial load processing
         });
+
     </script>
 </body>
 </html>

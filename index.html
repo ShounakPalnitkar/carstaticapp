@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Car Recommender</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* [Previous CSS styles remain exactly the same] */
+    </style>
+</head>
+<body>
+    <!-- [Previous HTML structure remains exactly the same until the script section] -->
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Sample EV data with prices in USD and max 5 seats
+        const evData = [
+            {
+                "Model": "Tesla Model 3 Standard Range Plus",
+                "Acceleration": "5.6 sec",
+                "TopSpeed": "140 mph",
+                "Range": "267 miles",
+                "Efficiency": "24 kWh/100 miles",
+                "FastChargeSpeed": "170 mph",
+                "Drive": "Rear Wheel Drive",
+                "NumberofSeats": "5",
+                "PriceinUSD": "40240",
+                "Image": "https://ev-database.org/img/auto/Tesla_Model_3_2022/Tesla_Model_3_2022-01.jpg"
+            },
+            {
+                "Model": "Hyundai Kona Electric 64 kWh",
+                "Acceleration": "7.9 sec",
+                "TopSpeed": "104 mph",
+                "Range": "300 miles",
+                "Efficiency": "21 kWh/100 miles",
+                "FastChargeSpeed": "150 mph",
+                "Drive": "Front Wheel Drive",
+                "NumberofSeats": "5",
+                "PriceinUSD": "34200",
+                "Image": "https://ev-database.org/img/auto/Hyundai_Kona_Electric_64_kWh/Hyundai_Kona_Electric_64_kWh-01.jpg"
+            },
+            {
+                "Model": "Kia e-Niro 64 kWh",
+                "Acceleration": "7.8 sec",
+                "TopSpeed": "104 mph",
+                "Range": "282 miles",
+                "Efficiency": "23 kWh/100 miles",
+                "FastChargeSpeed": "150 mph",
+                "Drive": "Front Wheel Drive",
+                "NumberofSeats": "5",
+                "PriceinUSD": "39400",
+                "Image": "https://ev-database.org/img/auto/Kia_e-Niro_64_kWh/Kia_e-Niro_64_kWh-01.jpg"
+            },
+            {
+                "Model": "MG ZS EV",
+                "Acceleration": "8.2 sec",
+                "TopSpeed": "108 mph",
+                "Range": "163 miles",
+                "Efficiency": "28 kWh/100 miles",
+                "FastChargeSpeed": "90 mph",
+                "Drive": "Front Wheel Drive",
+                "NumberofSeats": "5",
+                "PriceinUSD": "31400",
+                "Image": "https://ev-database.org/img/auto/MG_ZS_EV/MG_ZS_EV-01.jpg"
+            },
+            {
+                "Model": "Nissan Leaf e+ 62 kWh",
+                "Acceleration": "6.9 sec",
+                "TopSpeed": "98 mph",
+                "Range": "239 miles",
+                "Efficiency": "26 kWh/100 miles",
+                "FastChargeSpeed": "110 mph",
+                "Drive": "Front Wheel Drive",
+                "NumberofSeats": "5",
+                "PriceinUSD": "36600",
+                "Image": "https://ev-database.org/img/auto/Nissan_Leaf_e_62_kWh/Nissan_Leaf_e_62_kWh-01.jpg"
+            }
+        ];
+
+        // Function to extract numeric value from strings
+        function extractNumber(str) {
+            if (typeof str === 'number') return str;
+            if (!str) return 0;
+            const num = str.toString().replace(/[^0-9.]/g, '');
+            return parseFloat(num) || 0;
+        }
+
+        // Function to filter and sort EVs based on user preferences
+        function findEVs(preferences) {
+            const filtered = evData.filter(car => {
+                const range = extractNumber(car.Range);
+                const price = extractNumber(car.PriceinUSD);
+                const seats = extractNumber(car.NumberofSeats);
+                const fastCharge = extractNumber(car.FastChargeSpeed);
+                
+                // Check if car meets all criteria
+                const rangeMatch = range >= preferences.minRange;
+                const priceMatch = price <= preferences.maxPrice;
+                const seatsMatch = seats === preferences.seats;
+                const fastChargeMatch = fastCharge >= preferences.fastCharge;
+                const driveMatch = preferences.driveType === 'Any' || car.Drive === preferences.driveType;
+                
+                return rangeMatch && priceMatch && seatsMatch && fastChargeMatch && driveMatch;
+            });
+
+            // Sort by closest range match, then by price
+            return filtered.sort((a, b) => {
+                const aRangeDiff = Math.abs(extractNumber(a.Range) - preferences.minRange;
+                const bRangeDiff = Math.abs(extractNumber(b.Range) - preferences.minRange;
+                
+                if (aRangeDiff !== bRangeDiff) {
+                    return aRangeDiff - bRangeDiff;
+                }
+                return extractNumber(a.PriceinUSD) - extractNumber(b.PriceinUSD);
+            });
+        }
+
+        // Function to display results
+        function displayResults(results) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const noResults = document.getElementById('noResults');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            // Clear previous results
+            resultsContainer.innerHTML = '';
+            loadingSpinner.style.display = 'none';
+            
+            if (results.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            
+            // Display up to 6 best matches
+            results.slice(0, 6).forEach((car, index) => {
+                const card = document.createElement('div');
+                card.className = 'col-md-6';
+                card.innerHTML = `
+                    <div class="card h-100">
+                        ${index === 0 ? '<div class="recommendation-badge">Best Match</div>' : ''}
+                        <img src="${car.Image || 'https://via.placeholder.com/300x200?text=Car+Image'}" class="card-img-top" alt="${car.Model}">
+                        <div class="card-body">
+                            <h5 class="card-title">${car.Model}</h5>
+                            <div class="car-spec"><i class="bi bi-speedometer2"></i> <span><strong>Range:</strong> ${car.Range}</span></div>
+                            <div class="car-spec"><i class="bi bi-cash-stack"></i> <span><strong>Price:</strong> $${extractNumber(car.PriceinUSD).toLocaleString()}</span></div>
+                            <div class="car-spec"><i class="bi bi-lightning-charge"></i> <span><strong>Efficiency:</strong> ${car.Efficiency}</span></div>
+                            <div class="car-spec"><i class="bi bi-lightning"></i> <span><strong>Fast Charge:</strong> ${car.FastChargeSpeed}</span></div>
+                            <div class="car-spec"><i class="bi bi-gear"></i> <span><strong>Drive:</strong> ${car.Drive}</span></div>
+                            <div class="car-spec"><i class="bi bi-people"></i> <span><strong>Seats:</strong> ${car.NumberofSeats}</span></div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted">0-60 mph in ${car.Acceleration}</small>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.appendChild(card);
+            });
+        }
+
+        // Form submission handler
+        document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading spinner
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('noResults').style.display = 'none';
+            
+            // Get user preferences
+            const preferences = {
+                minRange: parseInt(document.getElementById('minRange').value) || 150,
+                maxPrice: parseInt(document.getElementById('maxPrice').value) || 40000,
+                driveType: document.getElementById('driveType').value,
+                seats: parseInt(document.getElementById('seats').value) || 5,
+                fastCharge: parseInt(document.getElementById('fastCharge').value) || 100
+            };
+            
+            // Process and display results
+            const results = findEVs(preferences);
+            displayResults(results);
+        });
+
+        // Initialize with default values on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const preferences = {
+                minRange: 150,
+                maxPrice: 40000,
+                driveType: 'Any',
+                seats: 5,
+                fastCharge: 100
+            };
+            const results = findEVs(preferences);
+            displayResults(results);
+        });
+    </script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
